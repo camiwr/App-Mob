@@ -1,75 +1,196 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import React from 'react';
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  SafeAreaView,
+  ScrollView 
+} from 'react-native';
+import { router } from 'expo-router';
+import { Plus, Map, ChartBar as BarChart3, MapPin } from 'lucide-react-native';
 
 export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Text style={styles.greeting}>Olá, João!</Text>
+          <Text style={styles.subtitle}>O que você gostaria de fazer hoje?</Text>
+        </View>
+
+        <View style={styles.quickActions}>
+          <TouchableOpacity 
+            style={styles.primaryCard}
+            onPress={() => router.push('/area-form')}
+          >
+            <View style={styles.cardIcon}>
+              <Plus size={28} color="#FFFFFF" />
+            </View>
+            <Text style={styles.primaryCardTitle}>Nova Simulação</Text>
+            <Text style={styles.primaryCardSubtitle}>Criar uma nova simulação de área</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.secondaryCard}
+            onPress={() => router.push('./(tabs)/areas')}
+          >
+            <View style={styles.secondaryCardIcon}>
+              <MapPin size={28} color="#14B8A6" />
+            </View>
+            <Text style={styles.secondaryCardTitle}>Minhas Áreas</Text>
+            <Text style={styles.secondaryCardSubtitle}>Visualizar áreas cadastradas</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Últimas Atividades</Text>
+          
+          <View style={styles.activityCard}>
+            <View style={styles.activityIcon}>
+              <BarChart3 size={20} color="#3B82F6" />
+            </View>
+            <View style={styles.activityContent}>
+              <Text style={styles.activityTitle}>Simulação - Área Central</Text>
+              <Text style={styles.activitySubtitle}>Criada há 2 dias</Text>
+            </View>
+          </View>
+
+          <View style={styles.activityCard}>
+            <View style={styles.activityIcon}>
+              <Map size={20} color="#14B8A6" />
+            </View>
+            <View style={styles.activityContent}>
+              <Text style={styles.activityTitle}>Nova Área - Zona Norte</Text>
+              <Text style={styles.activitySubtitle}>Criada há 5 dias</Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
   },
-  stepContainer: {
-    gap: 8,
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  header: {
+    paddingTop: 24,
+    paddingBottom: 32,
+  },
+  greeting: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  quickActions: {
+    marginBottom: 32,
+  },
+  primaryCard: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  cardIcon: {
+    width: 56,
+    height: 56,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  primaryCardTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  primaryCardSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+  },
+  secondaryCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  secondaryCardIcon: {
+    width: 56,
+    height: 56,
+    backgroundColor: '#F0FDFA',
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  secondaryCardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  secondaryCardSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 16,
+  },
+  activityCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  activityIcon: {
+    width: 40,
+    height: 40,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  activityContent: {
+    flex: 1,
+  },
+  activityTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 2,
+  },
+  activitySubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
   },
 });
