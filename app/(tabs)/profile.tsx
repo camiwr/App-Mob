@@ -8,7 +8,7 @@ import {
   ScrollView,
   Image 
 } from 'react-native';
-import { router } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { CreditCard as Edit, Lock, LogOut, User, Mail, Phone } from 'lucide-react-native';
 
 export default function ProfileScreen() {
@@ -78,13 +78,20 @@ export default function ProfileScreen() {
               </View>
               <Text style={styles.actionText}>Alterar senha</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.actionItem, styles.logoutAction]}>
-              <View style={styles.actionIcon}>
+            
+            
+            <Link href="/">
+              <TouchableOpacity
+                style={[styles.actionItem, styles.logoutAction]}
+                onPress={() => {
+                }}
+              >
+                <View style={styles.actionIcon}>
                 <LogOut size={20} color="#EF4444" />
-              </View>
-              <Text style={[styles.actionText, styles.logoutText]}>Sair</Text>
-            </TouchableOpacity>
+                </View>
+                <Text style={[styles.actionText, styles.logoutText]}>Sair</Text>
+              </TouchableOpacity>
+            </Link>
           </View>
         </View>
       </ScrollView>
