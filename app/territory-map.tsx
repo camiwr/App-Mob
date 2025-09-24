@@ -1,21 +1,47 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  StyleSheet, 
-  SafeAreaView,
-  Alert 
-} from 'react-native';
+import * as Location from 'expo-location';
 import { router } from 'expo-router';
-import { ArrowLeft, MapPin, Locate, Check } from 'lucide-react-native';
+import { ArrowLeft, Check, Locate } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  Alert,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
+
+type LocationCoords = { latitude: number; longitude: number } | null;
 
 export default function TerritoryMapScreen() {
-  const [selectedLocation, setSelectedLocation] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<LocationCoords>(null);
+  const [currentLocation, setCurrentLocation] = useState<LocationCoords>(null);
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permissão negada', 'Permita o acesso à localização para usar o mapa.');
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setCurrentLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+    })();
+  }, []);
 
   const handleUseCurrentLocation = () => {
-    setSelectedLocation(true);
-    Alert.alert('Localização', 'Localização atual selecionada');
+    if (currentLocation) {
+      setSelectedLocation(currentLocation);
+      Alert.alert('Localização', 'Localização atual selecionada');
+    } else {
+      Alert.alert('Erro', 'Não foi possível obter a localização atual.');
+    }
   };
 
   const handleConfirmTerritory = () => {
@@ -23,7 +49,7 @@ export default function TerritoryMapScreen() {
       Alert.alert('Aviso', 'Por favor, selecione uma localização primeiro');
       return;
     }
-    
+
     Alert.alert('Território Confirmado', 'Localização salva com sucesso!', [
       { text: 'OK', onPress: () => router.back() }
     ]);
@@ -40,31 +66,46 @@ export default function TerritoryMapScreen() {
       </View>
 
       <View style={styles.mapContainer}>
-        <View style={styles.mapPlaceholder}>
-          <Text style={styles.mapText}>Mapa Interativo</Text>
-          <Text style={styles.mapSubtext}>
-            {selectedLocation ? 'Localização selecionada' : 'Toque para selecionar a localização'}
-          </Text>
-        </View>
-
-        <View style={styles.centerPin}>
-          <View style={[styles.pin, selectedLocation && styles.pinActive]}>
-            <MapPin size={32} color={selectedLocation ? '#14B8A6' : '#EF4444'} />
+        {Platform.OS === 'web' ? (
+          <View style={styles.mapPlaceholder}>
+            <Text style={styles.mapText}>Mapa não suportado na web</Text>
           </View>
-        </View>
+        ) : currentLocation ? (
+          <MapView
+            style={StyleSheet.absoluteFillObject}
+            initialRegion={{
+              latitude: currentLocation.latitude,
+              longitude: currentLocation.longitude,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }}
+            onPress={(e) => setSelectedLocation(e.nativeEvent.coordinate)}
+          >
+            {selectedLocation && (
+              <Marker
+                coordinate={selectedLocation}
+                pinColor={selectedLocation ? '#14B8A6' : '#EF4444'}
+              />
+            )}
+          </MapView>
+        ) : (
+          <View style={styles.mapPlaceholder}>
+            <Text style={styles.mapText}>Carregando mapa...</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.locationInfo}>
         {selectedLocation && (
           <View style={styles.infoCard}>
-            <Text style={styles.infoTitle}>Área 2</Text>
+            <Text style={styles.infoTitle}>Área Selecionada</Text>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Valor do m²</Text>
-              <Text style={styles.infoValue}>R$ 500</Text>
+              <Text style={styles.infoLabel}>Latitude</Text>
+              <Text style={styles.infoValue}>{selectedLocation.latitude.toFixed(6)}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Custos de urbanização</Text>
-              <Text style={styles.infoValue}>R$ 100</Text>
+              <Text style={styles.infoLabel}>Longitude</Text>
+              <Text style={styles.infoValue}>{selectedLocation.longitude.toFixed(6)}</Text>
             </View>
           </View>
         )}
