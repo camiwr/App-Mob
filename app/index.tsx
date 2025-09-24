@@ -2,25 +2,45 @@ import { Link, router } from 'expo-router';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
-    Alert,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  ActivityIndicator
 } from 'react-native';
+
+import api from '../services/api';
+import * as SecureStore from 'expo-secure-store';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    if (email && password) {
-      router.push('/(tabs)');
-    } else {
+  const handleLogin = async () => {
+    if (!email || !password) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await api.post('/auth/login-password', { email, password });
+      const { accessToken } = response.data;
+      await SecureStore.setItemAsync('user_token', accessToken);
+
+      api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+
+      router.push('/(tabs)');
+
+    } catch (error: any) {
+      console.error("Erro no login:", error.response?.data || error.message);
+      Alert.alert('Erro no Login', 'Credenciais inválidas. Por favor, tente novamente.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -28,7 +48,7 @@ export default function LoginScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.appName}>APP Mob</Text>
+          <Text style={styles.appName}>soolu</Text>
           <Text style={styles.subtitle}>Bem-vindo de volta</Text>
         </View>
 
@@ -59,7 +79,7 @@ export default function LoginScreen() {
                 secureTextEntry={!showPassword}
                 placeholderTextColor="#9CA3AF"
               />
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.eyeIcon}
                 onPress={() => setShowPassword(!showPassword)}
               >
@@ -72,8 +92,13 @@ export default function LoginScreen() {
             </View>
           </View>
 
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={isLoading}>
             <Text style={styles.loginButtonText}>Entrar</Text>
+            {isLoading ? (
+                <ActivityIndicator color="#FFFFFF" />
+            ) : (
+                <Text style={styles.loginButtonText}>Entrar</Text>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.forgotPassword}>
