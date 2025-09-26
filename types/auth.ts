@@ -1,14 +1,14 @@
 export interface CreateUserDto {
   name: string;
   email: string;
-  password?: string;
-  cpf?: string;      
+  password_hash?: string;
+  cpf?: string;
   phone?: string;
 }
 
 export interface LoginDto {
   email: string;
-  password: string;
+  password_hash: string;
 }
 
 export interface LoginResponse {
