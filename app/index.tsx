@@ -9,11 +9,15 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 
-import api from '../services/api';
+import { AuthService } from '../services/AuthService';
 import * as SecureStore from 'expo-secure-store';
+import api from '../services/api';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -28,13 +32,9 @@ export default function LoginScreen() {
     }
     setIsLoading(true);
     try {
-      const response = await api.post('/auth/login-password', { email, password });
-      const { accessToken } = response.data;
-      await SecureStore.setItemAsync('user_token', accessToken);
-
-      api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-
-      router.push('/(tabs)');
+      const data = await AuthService.login({ email, password_hash: password });
+      await SecureStore.setItemAsync('user_token', data.accessToken);
+      router.replace('/(tabs)');
 
     } catch (error: any) {
       console.error("Erro no login:", error.response?.data || error.message);
@@ -44,80 +44,105 @@ export default function LoginScreen() {
     }
   };
 
+  const handleClearToken = async () => {
+    try {
+      await SecureStore.deleteItemAsync('user_token');
+
+      delete api.defaults.headers.common['Authorization'];
+      Alert.alert('Sucesso', 'O token local foi limpo. Pode tentar registar um novo usuário.');
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível limpar o token.');
+      console.error("Erro ao limpar o token:", error);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.appName}>soolu</Text>
-          <Text style={styles.subtitle}>Bem-vindo de volta</Text>
-        </View>
-
-        <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <View style={styles.inputWrapper}>
-              <Mail size={20} color="#6B7280" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Email"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.content}>
+          <View style={styles.header}>
+            <Text style={styles.appName}>soolu</Text>
+            <Text style={styles.subtitle}>Bem-vindo de volta</Text>
           </View>
 
-          <View style={styles.inputContainer}>
-            <View style={styles.inputWrapper}>
-              <Lock size={20} color="#6B7280" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Senha"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                placeholderTextColor="#9CA3AF"
-              />
-              <TouchableOpacity
-                style={styles.eyeIcon}
-                onPress={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <EyeOff size={20} color="#6B7280" />
-                ) : (
-                  <Eye size={20} color="#6B7280" />
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
+          <TouchableOpacity
+            style={styles.clearButton} // Usaremos um novo estilo
+            onPress={handleClearToken}
+          >
+            <Text style={styles.clearButtonText}>Limpar Token (DEV)</Text>
+          </TouchableOpacity>
 
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={isLoading}>
-            {isLoading ? (
+          <View style={styles.form}>
+            <View style={styles.inputContainer}>
+              <View style={styles.inputWrapper}>
+                <Mail size={20} color="#6B7280" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Email"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputContainer}>
+              <View style={styles.inputWrapper}>
+                <Lock size={20} color="#6B7280" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Senha"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  placeholderTextColor="#9CA3AF"
+                />
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} color="#6B7280" />
+                  ) : (
+                    <Eye size={20} color="#6B7280" />
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={isLoading}>
+              {isLoading ? (
                 <ActivityIndicator color="#FFFFFF" />
-            ) : (
+              ) : (
                 <Text style={styles.loginButtonText}>Entrar</Text>
-            )}
-          </TouchableOpacity>
+              )}
+            </TouchableOpacity>
 
-          <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Esqueci a senha</Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.forgotPassword}>
+              <Text style={styles.forgotPasswordText}>Esqueci a senha</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity style={styles.googleButton} onPress={() => Alert.alert('Login com Google', 'Funcionalidade mockada')}>
-            <Text style={styles.googleButtonText}>Login com Google</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.googleButton}
+              onPress={() => Alert.alert('Login com Google', 'Funcionalidade a ser implementada')}>
+              <Text style={styles.googleButtonText}>Login com Google</Text>
+            </TouchableOpacity>
 
-          <View style={styles.registerSection}>
-            <Text style={styles.registerPrompt}>Não tem uma conta?</Text>
-            <Link href="./register" asChild>
-              <TouchableOpacity>
-                <Text style={styles.registerLink}>Criar conta</Text>
-              </TouchableOpacity>
-            </Link>
+            <View style={styles.registerSection}>
+              <Text style={styles.registerPrompt}>Não tem uma conta?</Text>
+              <Link href="./register" asChild>
+                <TouchableOpacity>
+                  <Text style={styles.registerLink}>Criar conta</Text>
+                </TouchableOpacity>
+              </Link>
+            </View>
           </View>
-        </View>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -128,7 +153,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
   },
   content: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
   },
@@ -214,6 +239,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 16,
   },
   registerPrompt: {
     color: '#6B7280',
@@ -222,6 +248,19 @@ const styles = StyleSheet.create({
   },
   registerLink: {
     color: '#3B82F6',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  clearButton: {
+    backgroundColor: '#EF4444', // Vermelho para indicar uma ação de "reset"
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  clearButtonText: {
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
