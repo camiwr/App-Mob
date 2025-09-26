@@ -8,16 +8,27 @@
     "scheme": "appmob",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.seuorg.appmob",
+      "buildNumber": "1"
     },
+
     "android": {
+      "package": "com.seuorg.appmob",
+      "versionCode": 1,
+      "usesCleartextTraffic": false,
+      "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "permissions": [
+        "android.permission.INTERNET"
+      ]
     },
+
     "web": {
       "bundler": "metro",
       "output": "static",
@@ -38,6 +49,9 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+     "extra": {
+      "API_BASE_URL": "https://soolu-api.onrender.com"
     }
   }
 }
